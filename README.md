@@ -1,6 +1,5 @@
-# [Face Recognition VKIST](http://123.16.55.212:85/) 
+# [Face Recognition VKIST] 
 
- [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/daovietanh99)
  ![version](https://img.shields.io/badge/version-1.0.1-blue.svg) 
  
  ## Quick start
@@ -9,20 +8,8 @@
 
 ```bash
 $ # Get the code
-$ git clone https://github.com/daovietanh190499/face_rec.git
-$ cd face-rec
-$
-$ # Get the weight of arcface and put it on folder /app/ms1mv3_arcface_r50_fp16
-$ wget https://github.com/daovietanh190499/face_rec/releases/download/v1.0.0/backbone_ir50_ms1m_epoch120.pth
-$ mv backbone_ir50_ms1m_epoch120.pth /app/ms1mv3_arcface_r50_fp16
-$
-$ # Get the weight of ultralight weight face detection and put it on folder /app/detect_RFB_640
-$ wget https://github.com/daovietanh190499/face_rec/releases/download/v1.0.0/version-RFB-640.pth
-$ mv version-RFB-640.pth /app/detect_RFB_640/
-$
-$ # Get the labels file of ultralight weight face detection and put it on folder /app/detect_RFB_640
-$ wget https://github.com/daovietanh190499/face_rec/releases/download/v1.0.0/voc-model-labels.txt
-$ mv voc-model-labels.txt /app/detect_RFB_640/
+$ git clone https://github.com/vietbacnguyen96/AI_Award_2022.git
+$ cd AI_Award_2022
 $
 $ # Virtualenv modules installation (Unix based systems)
 $ virtualenv env
@@ -36,9 +23,8 @@ $ # Install modules
 $ pip3 install -r requirements.txt
 $
 $ # Start the application (development mode)
-$ python3 app.py
+$ python3 gui.py
 $
-$ # Access the dashboard in browser: http://127.0.0.1:5051/
 ```
 
 > Note: To use the app, please access the registration page and create a new user. After authentication, the app will unlock the private pages.
