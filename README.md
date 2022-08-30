@@ -1,10 +1,8 @@
-# [Face Recognition VKIST] 
+# [Hệ thống phần mềm AI nhận diện khuôn mặt VKIST] 
 
  ![version](https://img.shields.io/badge/version-1.0.1-blue.svg) 
  
- ## Quick start
-
-> UNZIP the sources or clone the private repository. After getting the code, open a terminal and navigate to the working directory, with product source code.
+## Quick start
 
 ```bash
 $ # Get the code
@@ -26,5 +24,3 @@ $ # Start the application (development mode)
 $ python3 gui.py
 $
 ```
-
-> Note: To use the app, please access the registration page and create a new user. After authentication, the app will unlock the private pages.
