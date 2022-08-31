@@ -31,15 +31,15 @@ debug = False
 if args.debug == 'True':
 	debug = True
 
-# url = 'http://192.168.1.62:5051/'
-url = 'http://localhost:5051/'
+url = 'http://192.168.1.62:5051/'
+# url = 'http://localhost:5051/'
 
 api_list = [url + 'FaceRec', url + 'FaceRec_DREAM', url + 'FaceRec_3DFaceModeling']
 request_times = [10, 10, 10]
 api_index = 0
 
-# secret_key = "6fdf703e-1f6c-4196-9e85-a20133eb6337"
-secret_key = "057ca076-de61-44ec-a619-195758453416"
+secret_key = "6fdf703e-1f6c-4196-9e85-a20133eb6337"
+# secret_key = "057ca076-de61-44ec-a619-195758453416"
 
 window_name = 'Hệ thống phần mềm AI nhận diện khuôn mặt VKIST'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -181,8 +181,11 @@ y_dis = 10
 window_size_x = 1200
 window_size_y = 700
 
-button_size_x = 100
-button_size_y = 10
+button_size_x = 120
+button_size_y = 20
+
+distance_x = 20
+distance_y = 30
 
 image_zone_size_x = window_size_x
 image_zone_size_y = 600
@@ -217,30 +220,37 @@ def mode_3():
 root = Tk()
 root.title(window_name)
 root.geometry(str(window_size_x) + 'x' + str(window_size_y))
-# Create a frame
-image_zone = Frame(root, width = image_zone_size_x, height = image_zone_size_y, bg="white")
+
+# # Create image zone
+# image_zone = Frame(root, width = image_zone_size_x, height = image_zone_size_y, bg="white")
+# image_zone.grid()
+# # Create a label in the image zone
+# lmain = Label(image_zone)
+# lmain.grid()
+
+# Create image zone
+image_zone = Canvas(root, width = image_zone_size_x, height = image_zone_size_y, bg="white")
 image_zone.grid()
-# Create a label in the frame
-lmain = Label(image_zone)
-lmain.grid()
 
+image_id = None  # default value at start (to create global variable)
 
-#  Button zone
+# Create button zone
 button_zone = Frame(root, width = button_zone_size_x, height = button_zone_size_y, bg='#bbbcbd')
 button_zone.place(x= 0, y = image_zone_size_y + y_dis)
 
 var = IntVar()
 # Create a Button
-mode_1_btn = Radiobutton(button_zone, text = 'Mode 1', variable=var, value=1, bd = '5', command = mode_1)
+mode_1_btn = Radiobutton(button_zone, text = 'Chế độ 1', variable=var, value=1, bd = '5', command = mode_1)
 mode_1_btn.place(x = x_dis, y = y_dis * 2)
 mode_1_btn.select()
-mode_2_btn = Radiobutton(button_zone, text = 'Mode 2', variable=var, value=2, bd = '5', command = mode_2)
+
+mode_2_btn = Radiobutton(button_zone, text = 'Chế độ 2', variable=var, value=2, bd = '5', command = mode_2)
 mode_2_btn.place(x = button_size_x + x_dis, y = y_dis * 2)
 
-mode_3_btn = Radiobutton(button_zone, text = 'Mode 3', variable=var, value=3,  bd = '5', command = mode_3)
+mode_3_btn = Radiobutton(button_zone, text = 'Chế độ 3', variable=var, value=3,  bd = '5', command = mode_3)
 mode_3_btn.place(x = button_size_x * 2 + x_dis, y = y_dis * 2)
 
-take_photo_btn = Button(button_zone, text = 'Take photo!', bd = '5', command = take_photo)
+take_photo_btn = Button(button_zone, text = 'Chụp ảnh!', bd = '5', command = take_photo)
 take_photo_btn.place(x = button_size_x * 3 + x_dis, y = y_dis * 2)
 
 take_photo_btn["state"] = DISABLED
@@ -254,7 +264,7 @@ count = 0
 # function for video streaming
 def video_stream():
     global count, predict_labels, temp_boxes, prev_frame_time, new_frame_time, queue, api_index, request_times, take_photo_state
-
+    global image_id
     # tm.start()
     count += 1
 
@@ -262,8 +272,7 @@ def video_stream():
 
     ret, orig_image = webcam.read()
 
-    distance_x = 20
-    distance_y = 30
+
     final_frame = orig_image.copy()
 
     # for i in range(0, n_box):
@@ -291,9 +300,14 @@ def video_stream():
 
     frame_show[:frame_height, :frame_width,:] = final_frame
 
-    image_names = ['Capture Image(s)', 'Profile Image(s)', '3D Image(s)']
+    # image_names = ['Capture Image(s)', 'Profile Image(s)', '3D Image(s)']
+
+
+    image_names = ['Ảnh tức thời', 'Ảnh hồ sơ', 'Ảnh 3D']
     for i, name_I in enumerate(image_names):
-        cv2.putText(frame_show, '{0}'.format(name_I), (frame_width + distance_x + (crop_image_size + distance_x) * i, int(distance_y * 0.5)), fontface, 0.4, (0, 0, 0))
+        # cv2.putText(frame_show, '{0}'.format(name_I), (frame_width + distance_x + (crop_image_size + distance_x) * i, int(distance_y * 0.5)), fontface, 0.4, (0, 0, 0))
+        image_zone.create_text(frame_width + distance_x + (crop_image_size + distance_x) * i + 60, int(distance_y * 0.5), text=name_I, fill="black", font=('Helvetica 15 bold'))
+
     image_name_y = 30
 
     for i, labelI in enumerate(predict_labels):
@@ -323,12 +337,35 @@ def video_stream():
 
     cv2.putText(frame_show, '{0} fps'.format(fps), (20, 50), cv2.FONT_HERSHEY_DUPLEX, 1, (100, 255, 0), 1, cv2.LINE_AA)
     
+    # text = Text(root)
+
+    # text.insert(INSERT, "Xin chào")
+    # text.insert(END, "...")
+    # text.place(x = frame_width + distance_x + (crop_image_size + distance_x) * 0, y = int(distance_y * 0.5))
+
+
     cv2image = cv2.cvtColor(frame_show, cv2.COLOR_BGR2RGBA)
     img = Image.fromarray(cv2image)
+
+    # convert to Tkinter image
     imgtk = ImageTk.PhotoImage(image=img)
-    lmain.imgtk = imgtk
-    lmain.configure(image=imgtk)
-    lmain.after(1, video_stream) 
+    # image_zone.create_image(0, 0, anchor=NW, image=imgtk)
+    
+    # solution for bug in `PhotoImage`
+    image_zone.photo = imgtk
+
+    # check if image already exists
+    if image_id:       
+        # replace image in PhotoImage on canvas
+        image_zone.itemconfig(image_id, image=imgtk)
+    else:
+        # create first image on canvas and keep its ID
+        image_id = image_zone.create_image((0,0), image=imgtk, anchor='nw')
+
+        # resize canvas
+        image_zone.configure(width=imgtk.width(), height=imgtk.height())
+
+    root.after(1, video_stream) 
 
     if len(predict_labels) > 3:
         temp_boxes = []
@@ -336,3 +373,4 @@ def video_stream():
 
 video_stream()
 root.mainloop()
+cap.release()
