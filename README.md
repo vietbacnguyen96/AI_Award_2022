@@ -4,8 +4,8 @@
 
 ```bash
 $ # Get the code
-$ git clone https://github.com/vietbacnguyen96/AI_Award_2022.git
-$ cd AI_Award_2022
+$ git clone https://github.com/vietbacnguyen96/AI_Awards_2022.git
+$ cd AI_Awards_2022
 $
 $ # Install python 3.6.2
 $ https://www.python.org/downloads/release/python-362/
