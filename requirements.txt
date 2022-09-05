@@ -4,4 +4,4 @@ requests
 unidecode
 gtts
 playsound
-
+torch

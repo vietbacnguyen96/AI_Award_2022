@@ -10,8 +10,6 @@ $
 $ # Install python 3.6.2
 $ https://www.python.org/downloads/release/python-362/
 $
-$ # Install torch 1.10.0
-$ https://pypi.org/project/torch/1.10.0/#files
 $ # Virtualenv modules installation (Unix based systems)
 $ virtualenv env
 $ source env/bin/activate
