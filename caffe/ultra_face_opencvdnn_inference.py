@@ -17,7 +17,7 @@ min_boxes = [[10.0, 16.0, 24.0], [32.0, 48.0], [64.0, 96.0], [128.0, 192.0, 256.
 strides = [8.0, 16.0, 32.0, 64.0]
 
 # path = "H:/face_recognition/AI_Awards_2022/"
-path = "./AI_Awards_2022/"
+path = "./"
 
 def define_img_size(image_size):
     shrinkage_list = []
@@ -135,7 +135,8 @@ def center_form_to_corner_form(locations):
     return np.concatenate([locations[..., :2] - locations[..., 2:] / 2,
                            locations[..., :2] + locations[..., 2:] / 2], len(locations.shape) - 1)
 
-net = dnn.readNetFromONNX( path + 'models/onnx/version-RFB-320_simplified.onnx')  # onnx version
+# net = dnn.readNetFromONNX( path + 'models/onnx/version-RFB-320_simplified.onnx')  # onnx version
+net = dnn.readNetFromONNX('models/onnx/version-RFB-320_simplified.onnx')  # onnx version
 input_size = [320, 240]
 witdh = input_size[0]
 height = input_size[1]
