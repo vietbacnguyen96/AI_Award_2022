@@ -11,11 +11,11 @@ $ # Install python 3.6.2
 $ https://www.python.org/downloads/release/python-362/
 $
 $ # Virtualenv modules installation (Unix based systems)
-$ virtualenv env
+$ virtualenv env -p python3.6.2
 $ source env/bin/activate
 $
 $ # Virtualenv modules installation (Windows based systems)
-$ virtualenv env
+$ virtualenv env -p python3.6.2
 $ .\env\Scripts\activate
 $
 $ # Install modules
