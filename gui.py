@@ -31,7 +31,8 @@ debug = False
 if args.debug == 'True':
 	debug = True
 
-url = 'http://192.168.1.62:5051/'
+# url = 'http://192.168.1.62:5051/'
+url = 'http://123.16.55.212:5052/'
 # url = 'http://localhost:5051/'
 
 api_list = [url + 'FaceRec', url + 'FaceRec_DREAM', url + 'FaceRec_3DFaceModeling']
@@ -289,11 +290,19 @@ def video_stream():
     if api_index < 2 or (api_index == 2 and take_photo_state):
         if (count % request_times[api_index]) == 0:
             for i, boxI in enumerate(temp_boxes):
-                x1, y1, x2, y2 = int(boxI[0]), int(boxI[1]), int(boxI[2]), int(boxI[3])
+                xmin, ymin, xmax, ymax = int(boxI[0]), int(boxI[1]), int(boxI[2]), int(boxI[3])
+                xmin -= 20
+                xmax += 20
+                ymin -= 20
+                ymax += 20
+                xmin = 0 if xmin < 0 else xmin
+                ymin = 0 if ymin < 0 else ymin
+                xmax = frame_width if xmax >= frame_width else xmax
+                ymax = frame_height if ymax >= frame_height else ymax
                 queue = [t for t in queue if t.is_alive()]
                 if len(queue) < 3:
                     # queue.append(threading.Thread(target=face_recognize, args=(orig_image,)))
-                    queue.append(threading.Thread(target=face_recognize, args=(orig_image[y1:y2, x1:x2],)))
+                    queue.append(threading.Thread(target=face_recognize, args=(orig_image[ymin:ymax, xmin:xmax],)))
                     queue[-1].start()
                 count = 0
             take_photo_state = False
@@ -355,7 +364,8 @@ def video_stream():
     image_zone.photo = imgtk
 
     # check if image already exists
-    if image_id:       
+    if image_id:  
+        image_zone.delete('all')     
         # replace image in PhotoImage on canvas
         image_zone.itemconfig(image_id, image=imgtk)
     else:
