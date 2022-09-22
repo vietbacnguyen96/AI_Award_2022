@@ -183,9 +183,15 @@ def face_recognize(frame):
                         content = front_string + name_parts[-1] + ' ' + name_parts[0]
                         # say_hello(front_string + name_parts[-1] + ' ' + name_parts[0])
                     else:
-                        print('\n' + front_string + name_parts[-2] + ' ' + name_parts[-1] + '\n') 
-                        content = front_string + name_parts[-2] + ' ' + name_parts[-1]
-                        # say_hello(front_string + name_parts[-2] + ' ' + name_parts[-1])
+                        if len(name_parts) > 2:
+                            print(front_string + name_parts[-2] + ' ' + name_parts[-1] + '\n')  
+                            say_hello(front_string + name_parts[-2] + ' ' + name_parts[-1])
+                        else:
+                            temp_names = ''
+                            for name_part_I in name_parts:
+                                temp_names += name_part_I + ' '
+                            print(front_string + temp_names+ '\n')  
+                            say_hello(front_string + temp_names)
 
                     faceI = cv2.resize(frame[int(float(bb[1])): int(float(bb[3])), int(float(bb[0])): int(float(bb[2]))], (crop_image_size, crop_image_size))
                     cur_profile_face = None
