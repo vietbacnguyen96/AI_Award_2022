@@ -46,8 +46,8 @@ url = 'http://192.168.1.62:5051/'
 path = "./"
 
 api_list = [url + 'FaceRec', url + 'FaceRec_DREAM', url + 'FaceRec_3DFaceModeling']
-# request_times = [10, 10, 10]
-request_times = [1, 1, 1]
+request_times = [10, 10, 10]
+# request_times = [1, 1, 1]
 api_index = 0
 
 secret_key = "6fdf703e-1f6c-4196-9e85-a20133eb6337"
@@ -603,8 +603,8 @@ class MainWindow():
                     queue = [t for t in queue if t.is_alive()]
                     if len(queue) < 3:
                         # queue.append(threading.Thread(target=face_recognize, args=(orig_image,)))
-                        # queue.append(threading.Thread(target=face_recognize, args=(orig_image[ymin:ymax, xmin:xmax],)))
-                        queue.append(threading.Thread(target=face_recognize, args=(orig_image[y1:y2, x1:x2],)))
+                        queue.append(threading.Thread(target=face_recognize, args=(orig_image[ymin:ymax, xmin:xmax],)))
+                        # queue.append(threading.Thread(target=face_recognize, args=(orig_image[y1:y2, x1:x2],)))
                         queue[-1].start()
                     count = 0
                 take_photo_state = False
