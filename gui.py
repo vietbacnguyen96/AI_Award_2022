@@ -19,9 +19,14 @@ import playsound
 from datetime import datetime
 import os
 import numpy as np
-
+import math
 from caffe.ultra_face_opencvdnn_inference import inference, net as net_dnn
 # from win32gui import GetWindowRect
+
+from mark_detector import MarkDetector
+
+mark_detector = MarkDetector()
+
 
 # ********************************** Face recognition variables **********************************
 parser = argparse.ArgumentParser(description='Face Recognition')
@@ -41,7 +46,8 @@ url = 'http://192.168.1.62:5051/'
 path = "./"
 
 api_list = [url + 'FaceRec', url + 'FaceRec_DREAM', url + 'FaceRec_3DFaceModeling']
-request_times = [10, 10, 10]
+# request_times = [10, 10, 10]
+request_times = [1, 1, 1]
 api_index = 0
 
 secret_key = "6fdf703e-1f6c-4196-9e85-a20133eb6337"
@@ -437,6 +443,63 @@ def video_stream():
 #                 cv2.VideoWriter_fourcc(*'MJPG'),
 #                 10, size)
 
+def face_orientation(frame, landmarks):
+    # print(landmarks)
+    size = frame.shape #(height, width, color_channel)
+    # index_6_point = [36, 45, 30, 8, 48, 54]
+    image_points = np.array([
+                            (landmarks[30][0], landmarks[30][1]),     # Nose tip
+                            (landmarks[8][0], landmarks[8][1]),   # Chin
+                            (landmarks[36][0], landmarks[36][1]),     # Left eye left corner
+                            (landmarks[45][0], landmarks[45][1]),     # Right eye right corne
+                            (landmarks[48][0], landmarks[48][1]),     # Left Mouth corner
+                            (landmarks[54][0], landmarks[54][1])      # Right mouth corner
+                        ], dtype="double")
+    model_points = np.array([
+                            (0.0, 0.0, 0.0),             # Nose tip
+                            (0.0, -330.0, -65.0),        # Chin
+                            (-165.0, 170.0, -135.0),     # Left eye left corner
+                            (165.0, 170.0, -135.0),      # Right eye right corne
+                            (-150.0, -150.0, -125.0),    # Left Mouth corner
+                            (150.0, -150.0, -125.0)      # Right mouth corner                         
+                        ])
+
+    # Camera internals
+ 
+    center = (size[1]/2, size[0]/2)
+    focal_length = center[0] / np.tan(60/2 * np.pi / 180)
+    camera_matrix = np.array(
+                         [[focal_length, 0, center[0]],
+                         [0, focal_length, center[1]],
+                         [0, 0, 1]], dtype = "double"
+                         )
+
+    dist_coeffs = np.zeros((4,1)) # Assuming no lens distortion
+    (success, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix, dist_coeffs)#, flags=cv2.CV_ITERATIVE)
+
+    
+    axis = np.float32([[500,0,0], 
+                          [0,500,0], 
+                          [0,0,500]])
+                          
+    imgpts, jac = cv2.projectPoints(axis, rotation_vector, translation_vector, camera_matrix, dist_coeffs)
+    modelpts, jac2 = cv2.projectPoints(model_points, rotation_vector, translation_vector, camera_matrix, dist_coeffs)
+    rvec_matrix = cv2.Rodrigues(rotation_vector)[0]
+
+    proj_matrix = np.hstack((rvec_matrix, translation_vector))
+    eulerAngles = cv2.decomposeProjectionMatrix(proj_matrix)[6] 
+
+    
+    pitch, yaw, roll = [math.radians(_) for _ in eulerAngles]
+
+
+    pitch = math.degrees(math.asin(math.sin(pitch)))
+    roll = -math.degrees(math.asin(math.sin(roll)))
+    yaw = math.degrees(math.asin(math.sin(yaw)))
+
+    return imgpts, modelpts, (str(int(roll)), str(int(pitch)), str(int(yaw))), (image_points[0][0], image_points[0][1]), image_points
+
+
 class MainWindow():
     def __init__(self, window, cap):
         self.window = window
@@ -477,32 +540,69 @@ class MainWindow():
         #     final_frame = cv2.rectangle(final_frame,(int((x_dis + box_size) * i) + x_dis, y_dis), (int((x_dis + box_size) * i) + x_dis + box_size, y_dis + box_size),(255,0,0), 10)
 
         # temp_boxes, _, probs = predictor.predict(orig_image[y_dis: y_dis + box_size, x_dis: x_dis + box_size], candidate_size / 2, threshold)
-        temp_boxes, _, probs = inference(net_dnn, orig_image)
+        if api_index == 0:
+            raw_boxes, _, probs = inference(net_dnn, orig_image)
+            square_boxes = mark_detector.make_square_box(raw_boxes, orig_image)
+        else:
+            square_boxes, raw_boxes = mark_detector.extract_cnn_facebox(orig_image)
 
-        for i, boxI in enumerate(temp_boxes):
-            x1, y1, x2, y2 = int(boxI[0]), int(boxI[1]), int(boxI[2]), int(boxI[3])
-            # if ((x2 - x1) * (y2 - y1)) / (box_size * box_size) > 0.2:
-            final_frame = cv2.rectangle(final_frame,(x1, y1), (x2, y2),(0,255,0), 2)
+        mark_detector.draw_box(final_frame, raw_boxes, box_color=(0, 255, 0))
+        mark_detector.draw_box(final_frame, square_boxes, box_color=(255, 0, 0))
+
+        # for i, boxI in enumerate(temp_boxes):
+        #     x1, y1, x2, y2 = int(boxI[0]), int(boxI[1]), int(boxI[2]), int(boxI[3])
+        #     # if ((x2 - x1) * (y2 - y1)) / (box_size * box_size) > 0.2:
+        #     final_frame = cv2.rectangle(final_frame,(x1, y1), (x2, y2),(0,255,0), 2)
 
         if api_index < 2 or (api_index == 2 and take_photo_state):
             if (count % request_times[api_index]) == 0:
-                for i, boxI in enumerate(temp_boxes):
+                for i, boxI in enumerate(square_boxes):
                     xmin, ymin, xmax, ymax = int(boxI[0]), int(boxI[1]), int(boxI[2]), int(boxI[3])
-                    if api_index == 2 and take_photo_state:
-                        xmin -= extend_pixel
-                        xmax += extend_pixel
-                        ymin -= extend_pixel
-                        ymax += extend_pixel
-                        
+                    # if api_index == 2 and take_photo_state:
+                    #     xmin -= extend_pixel
+                    #     xmax += extend_pixel
+                    #     ymin -= extend_pixel
+                    #     ymax += extend_pixel
+
                     xmin = 0 if xmin < 0 else xmin
                     ymin = 0 if ymin < 0 else ymin
                     xmax = frame_width if xmax >= frame_width else xmax
                     ymax = frame_height if ymax >= frame_height else ymax
-                    queue = [t for t in queue if t.is_alive()]
-                    if len(queue) < 3:
-                        # queue.append(threading.Thread(target=face_recognize, args=(orig_image,)))
-                        queue.append(threading.Thread(target=face_recognize, args=(orig_image[ymin:ymax, xmin:xmax],)))
-                        queue[-1].start()
+
+
+                    face_img = orig_image[ymin:ymax, xmin:xmax]
+                    marks = mark_detector.detect_marks(face_img)
+                    marks *= (xmax - xmin)
+                    marks[:, 0] += xmin
+                    marks[:, 1] += ymin
+
+                    imgpts, modelpts, rotate_degree, nose, landmark_6p = face_orientation(orig_image, marks)
+
+                    for index, idI in enumerate(marks):
+                        cv2.circle(final_frame, (int(marks[index][0]), int(marks[index][1])), 5, (0, 0, 255), -1)  
+                    # for index, idI in enumerate(index_6_point):
+                    #     cv2.circle(frame, (int(marks[idI][0]), int(marks[idI][1])), 3, (0, 255, 0), -1)  
+
+                    # # remapping = [2,3,0,4,5,1]
+                    for index in range(len(landmark_6p)):
+                        # random_color = tuple(np.random.random_integers(0,255,size=3))
+                        # print(random_color)
+                        cv2.circle(final_frame, (int(landmark_6p[index][0]), int(landmark_6p[index][1])), 5, (0, 255, 0), -1)  
+                        # cv2.circle(frame,  tuple(modelpts[remapping[index]].ravel().astype(int)), 2, random_color, -1)  
+                        
+                            
+                    # cv2.putText(frame, rotate_degree[0]+' '+rotate_degree[1]+' '+rotate_degree[2], (10, 30),
+                    #             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
+                    #             thickness=2, lineType=2)
+                    pose_name = ['Roll', 'Pitch', 'Raw']            
+                    for j in range(len(rotate_degree)):
+                        cv2.putText(final_frame, (pose_name[j] + ': {:05.2f}').format(float(rotate_degree[j])), (10, 30 + (50 * j)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2, lineType=2)
+
+                    # queue = [t for t in queue if t.is_alive()]
+                    # if len(queue) < 3:
+                    #     # queue.append(threading.Thread(target=face_recognize, args=(orig_image,)))
+                    #     queue.append(threading.Thread(target=face_recognize, args=(orig_image[ymin:ymax, xmin:xmax],)))
+                    #     queue[-1].start()
                     count = 0
                 take_photo_state = False
 
