@@ -493,6 +493,7 @@ class MainWindow():
                         xmax += extend_pixel
                         ymin -= extend_pixel
                         ymax += extend_pixel
+                        
                     xmin = 0 if xmin < 0 else xmin
                     ymin = 0 if ymin < 0 else ymin
                     xmax = frame_width if xmax >= frame_width else xmax
