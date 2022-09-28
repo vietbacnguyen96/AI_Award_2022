@@ -540,11 +540,11 @@ class MainWindow():
         #     final_frame = cv2.rectangle(final_frame,(int((x_dis + box_size) * i) + x_dis, y_dis), (int((x_dis + box_size) * i) + x_dis + box_size, y_dis + box_size),(255,0,0), 10)
 
         # temp_boxes, _, probs = predictor.predict(orig_image[y_dis: y_dis + box_size, x_dis: x_dis + box_size], candidate_size / 2, threshold)
-        if api_index == 0:
-            raw_boxes, _, probs = inference(net_dnn, orig_image)
-            square_boxes = mark_detector.make_square_box(raw_boxes, orig_image)
-        else:
-            square_boxes, raw_boxes = mark_detector.extract_cnn_facebox(orig_image)
+        # if api_index == 0:
+        #     raw_boxes, _, probs = inference(net_dnn, orig_image)
+        #     square_boxes = mark_detector.make_square_box(raw_boxes, orig_image)
+        # else:
+        square_boxes, raw_boxes = mark_detector.extract_cnn_facebox(orig_image)
 
         mark_detector.draw_box(final_frame, raw_boxes, box_color=(0, 255, 0))
         mark_detector.draw_box(final_frame, square_boxes, box_color=(255, 0, 0))
@@ -556,18 +556,20 @@ class MainWindow():
 
         if api_index < 2 or (api_index == 2 and take_photo_state):
             if (count % request_times[api_index]) == 0:
-                for i, boxI in enumerate(square_boxes):
-                    xmin, ymin, xmax, ymax = int(boxI[0]), int(boxI[1]), int(boxI[2]), int(boxI[3])
+                # for i, boxI in enumerate(square_boxes):
+                for raw_box, square_box in enumerate(raw_boxes, square_boxes):
+                    xmin, ymin, xmax, ymax = int(square_box[0]), int(square_box[1]), int(square_box[2]), int(square_box[3])
+                    x1, y1, x2, y2 = int(raw_box[0]), int(raw_box[1]), int(raw_box[2]), int(raw_box[3])
                     # if api_index == 2 and take_photo_state:
                     #     xmin -= extend_pixel
                     #     xmax += extend_pixel
                     #     ymin -= extend_pixel
                     #     ymax += extend_pixel
 
-                    xmin = 0 if xmin < 0 else xmin
-                    ymin = 0 if ymin < 0 else ymin
-                    xmax = frame_width if xmax >= frame_width else xmax
-                    ymax = frame_height if ymax >= frame_height else ymax
+                    # xmin = 0 if xmin < 0 else xmin
+                    # ymin = 0 if ymin < 0 else ymin
+                    # xmax = frame_width if xmax >= frame_width else xmax
+                    # ymax = frame_height if ymax >= frame_height else ymax
 
 
                     face_img = orig_image[ymin:ymax, xmin:xmax]
@@ -598,11 +600,12 @@ class MainWindow():
                     for j in range(len(rotate_degree)):
                         cv2.putText(final_frame, (pose_name[j] + ': {:05.2f}').format(float(rotate_degree[j])), (10, 30 + (50 * j)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2, lineType=2)
 
-                    # queue = [t for t in queue if t.is_alive()]
-                    # if len(queue) < 3:
-                    #     # queue.append(threading.Thread(target=face_recognize, args=(orig_image,)))
-                    #     queue.append(threading.Thread(target=face_recognize, args=(orig_image[ymin:ymax, xmin:xmax],)))
-                    #     queue[-1].start()
+                    queue = [t for t in queue if t.is_alive()]
+                    if len(queue) < 3:
+                        # queue.append(threading.Thread(target=face_recognize, args=(orig_image,)))
+                        # queue.append(threading.Thread(target=face_recognize, args=(orig_image[ymin:ymax, xmin:xmax],)))
+                        queue.append(threading.Thread(target=face_recognize, args=(orig_image[y1:y2, x1:x2],)))
+                        queue[-1].start()
                     count = 0
                 take_photo_state = False
 
