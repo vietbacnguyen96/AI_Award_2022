@@ -557,7 +557,7 @@ class MainWindow():
         if api_index < 2 or (api_index == 2 and take_photo_state):
             if (count % request_times[api_index]) == 0:
                 # for i, boxI in enumerate(square_boxes):
-                for raw_box, square_box in enumerate(raw_boxes, square_boxes):
+                for raw_box, square_box in zip(raw_boxes, square_boxes):
                     xmin, ymin, xmax, ymax = int(square_box[0]), int(square_box[1]), int(square_box[2]), int(square_box[3])
                     x1, y1, x2, y2 = int(raw_box[0]), int(raw_box[1]), int(raw_box[2]), int(raw_box[3])
                     # if api_index == 2 and take_photo_state:
